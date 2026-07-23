@@ -130,9 +130,7 @@ Features:
 
 # Author
 
-Emilya Ismayilova
-
-Data Analyst | SQL | Excel | Power BI
+Emiliia Ismayilova
 
 GitHub:
 https://github.com/emiliiasmailova3
