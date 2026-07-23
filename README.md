@@ -113,7 +113,7 @@ Features:
 - Revenue by State
 - Customer Rating vs Delivery Time
 
-![Power BI Dashboard](screenshots/powerBi_dashboard.png)
+![Power BI Dashboard](screenshots/powerbi_dashboard.png)
 
 ---
 
