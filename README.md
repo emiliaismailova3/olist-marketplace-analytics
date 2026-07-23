@@ -120,7 +120,7 @@ Features:
 # Key Business Insights
 
 - Nearly 96,500 completed orders were analyzed.
-- Total revenue exceeded R$19.7 million.
+- Total revenue exceeded R$13.7 million.
 - Most customers purchased only once.
 - Delivery delays negatively impacted review scores.
 - São Paulo generated the highest revenue.
