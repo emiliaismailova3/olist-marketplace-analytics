@@ -128,9 +128,7 @@ Features:
 
 ---
 
-# Author
-
-Emiliia Ismayilova
-
-GitHub:
-https://github.com/emiliiasmailova3
+## 👤 Author
+**Emiliia Ismailova**  
+* Junior Data Scientist / ML Engineer  
+* [LinkedIn](https://linkedin.com/in/emiliya-ismailova) | [GitHub](https://github.com/emiliaismailova3)
