@@ -1,7 +1,7 @@
 -- ============================================================
 -- 06_review_analysis.sql
 -- Project : Olist Marketplace Analytics (Brazil, 2016–2018)
--- Author  : Emiliya Ismailova
+-- Author  : Emiliia Ismailova
 -- Purpose : Analyse customer satisfaction and review patterns
 -- Questions:
 --   • What is the overall review score distribution?

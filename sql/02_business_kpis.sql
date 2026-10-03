@@ -1,7 +1,7 @@
 -- ============================================================
 -- 02_business_kpis.sql
 -- Project : Olist Marketplace Analytics (Brazil, 2016–2018)
--- Author  : Emiliya Ismailova
+-- Author  : Emiliia Ismailova
 -- Tool    : SQLite (olist.sqlite)
 -- Purpose : Executive KPIs used to evaluate overall business performance
 -- Questions:

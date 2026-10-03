@@ -1,7 +1,7 @@
 -- ============================================================
 -- 01_data_quality.sql
 -- Project : Olist Marketplace Analytics (Brazil, 2016–2018)
--- Author  : Emiliya Ismailova
+-- Author  : Emiliia Ismailova
 -- Purpose : Validate dataset integrity before any analysis
 -- Questions:
 --   • Are there NULL values in critical columns?

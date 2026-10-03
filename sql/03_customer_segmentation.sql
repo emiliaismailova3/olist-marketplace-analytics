@@ -1,7 +1,7 @@
 -- ============================================================
 -- 03_customer_segmentation.sql
 -- Project : Olist Marketplace Analytics (Brazil, 2016–2018)
--- Author  : Emiliya Ismailova
+-- Author  : Emiliia Ismailova
 -- Purpose : Understand customer behaviour, segmentation, and value
 -- Note    : revenue = price + freight_value (full amount paid by the customer);
 --           customers are identified by customer_unique_id.

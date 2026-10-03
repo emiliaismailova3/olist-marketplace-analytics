@@ -1,7 +1,7 @@
 -- ============================================================
 -- 04_sales_analysis.sql
 -- Project : Olist Marketplace Analytics (Brazil, 2016–2018)
--- Author  : Emiliya Ismailova
+-- Author  : Emiliia Ismailova
 -- Tool    : SQLite (olist.sqlite)
 -- Purpose : Sales, product and seller performance
 -- Questions:

@@ -1,7 +1,7 @@
 -- ============================================================
 -- 05_delivery_analysis.sql
 -- Project : Olist Marketplace Analytics (Brazil, 2016–2018)
--- Author  : Emiliya Ismailova
+-- Author  : Emiliia Ismailova
 -- Purpose : Analyse delivery performance and logistics efficiency
 -- Questions:
 --   • What is the average delivery time overall and by state?
