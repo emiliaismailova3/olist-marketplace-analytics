@@ -83,5 +83,5 @@ olist-marketplace-analytics/
 
 ## Author
 
-**Emiliya Ismailova** — Junior Data Scientist
+**Emiliia Ismailova** — Junior Data Scientist
 [LinkedIn](https://linkedin.com/in/emiliya-ismailova) · [GitHub](https://github.com/emiliaismailova3)
