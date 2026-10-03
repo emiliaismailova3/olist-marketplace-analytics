@@ -1,7 +1,10 @@
 -- ============================================================
--- 03_Customer_Analysis.sql
--- Project : Ecommerce Customer Analytics (Olist Brazil)
+-- 03_customer_segmentation.sql
+-- Project : Olist Marketplace Analytics (Brazil, 2016–2018)
+-- Author  : Emiliya Ismailova
 -- Purpose : Understand customer behaviour, segmentation, and value
+-- Note    : revenue = price + freight_value (full amount paid by the customer);
+--           customers are identified by customer_unique_id.
 -- Questions:
 --   • What share of customers are one-time vs repeat buyers?
 --   • Which cities/states have the most valuable customers?
@@ -17,7 +20,6 @@ WITH customer_orders AS (
     SELECT
         customer_unique_id,
         COUNT(DISTINCT o.order_id)                 AS total_orders,
-        -- Правка 1+3: считаем полную сумму заказа (товар + доставка)
         ROUND(SUM(oi.price + oi.freight_value), 2) AS total_spent
     FROM orders o
     JOIN order_items oi ON o.order_id = oi.order_id
@@ -47,9 +49,7 @@ SELECT
     c.customer_state                         AS state,
     COUNT(DISTINCT c.customer_unique_id)     AS unique_customers,
     COUNT(DISTINCT o.order_id)               AS total_orders,
-    -- Правка 3: полная выручка включая доставку
     ROUND(SUM(oi.price + oi.freight_value), 2) AS total_revenue,
-    -- Правка 1: настоящий AOV = сумма заказа / кол-во заказов
     ROUND(SUM(oi.price + oi.freight_value) / COUNT(DISTINCT o.order_id), 2) AS avg_order_value
 FROM customers c
 JOIN orders o       ON c.customer_id = o.customer_id
@@ -62,16 +62,22 @@ LIMIT 10;
 
 -- ------------------------------------------------------------
 -- 3. RFM SEGMENTATION
---    R = days since last purchase (lower = better)
---    F = number of orders
---    M = total amount spent
+--    R = days since last purchase (lower = better), scored by tertiles
+--    F = number of orders. ~97% of customers buy only once, so NTILE
+--        would split identical values randomly; fixed thresholds are
+--        used instead: 1 order = 1, 2 orders = 2, 3+ orders = 3
+--    M = total amount spent, scored by tertiles
+--    Reference date = day after the last order in the dataset
 -- ------------------------------------------------------------
-WITH rfm_base AS (
+WITH ref AS (
+    SELECT julianday(MAX(DATE(order_purchase_timestamp))) + 1 AS ref_day
+    FROM orders
+),
+rfm_base AS (
     SELECT
         c.customer_unique_id,
-        MAX(DATE(o.order_purchase_timestamp))  AS last_purchase_date,
-        COUNT(DISTINCT o.order_id)             AS frequency,
-        -- Правка 3: monetary = полная сумма включая доставку
+        MAX(DATE(o.order_purchase_timestamp))      AS last_purchase_date,
+        COUNT(DISTINCT o.order_id)                 AS frequency,
         ROUND(SUM(oi.price + oi.freight_value), 2) AS monetary
     FROM customers c
     JOIN orders o       ON c.customer_id = o.customer_id
@@ -81,40 +87,49 @@ WITH rfm_base AS (
 ),
 rfm_scored AS (
     SELECT
-        customer_unique_id,
-        last_purchase_date,
-        CAST(julianday('2018-10-01') - julianday(last_purchase_date) AS INT) AS recency_days,
-        frequency,
-        monetary,
-        -- Score 1-3 for each dimension (3 = best)
-        -- Правка 2: ASC для recency — чем меньше дней, тем выше score
-      4-NTILE(3) OVER (ORDER BY julianday('2018-10-01') - julianday(last_purchase_date) ASC) AS r_score,
-        NTILE(3) OVER (ORDER BY frequency)  AS f_score,
-        NTILE(3) OVER (ORDER BY monetary)   AS m_score
-    FROM rfm_base
+        b.customer_unique_id,
+        b.last_purchase_date,
+        CAST(r.ref_day - julianday(b.last_purchase_date) AS INT) AS recency_days,
+        b.frequency,
+        b.monetary,
+        -- Scores 1-3 for each dimension (3 = best)
+        4 - NTILE(3) OVER (ORDER BY r.ref_day - julianday(b.last_purchase_date)) AS r_score,
+        CASE WHEN b.frequency >= 3 THEN 3
+             WHEN b.frequency = 2  THEN 2
+             ELSE 1 END                                                          AS f_score,
+        NTILE(3) OVER (ORDER BY b.monetary)                                      AS m_score
+    FROM rfm_base b
+    CROSS JOIN ref r
+),
+rfm_segmented AS (
+    SELECT
+        *,
+        (r_score + f_score + m_score) AS rfm_total,
+        CASE
+            WHEN f_score >= 2 AND r_score >= 2 AND m_score = 3 THEN 'Champions'
+            WHEN f_score >= 2                                  THEN 'Loyal'
+            WHEN r_score = 3                                   THEN 'New / Recent'
+            WHEN m_score = 3                                   THEN 'At Risk (High Value)'
+            ELSE 'Lost / Low Value'
+        END AS rfm_segment
+    FROM rfm_scored
 )
+
+-- 3a. Segment summary (used in the dashboards)
 SELECT
-    customer_unique_id,
-    recency_days,
-    frequency,
-    monetary,
-    r_score,
-    f_score,
-    m_score,
-    (r_score + f_score + m_score) AS rfm_total,
-    CASE
-        WHEN (r_score + f_score + m_score) >= 8 THEN 'Champions'
-        WHEN (r_score + f_score + m_score) >= 6 THEN 'Loyal'
-        WHEN r_score >= 2 AND f_score = 1       THEN 'Promising'
-        WHEN r_score = 1 AND f_score >= 2       THEN 'At Risk'
-        ELSE 'Lost'
-    END AS rfm_segment
-FROM rfm_scored
-ORDER BY rfm_total DESC
-LIMIT 100;  -- remove LIMIT to get full table
+    rfm_segment,
+    COUNT(*)                                           AS customers,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 1) AS pct_of_customers,
+    ROUND(AVG(recency_days), 0)                        AS avg_recency_days,
+    ROUND(AVG(frequency), 2)                           AS avg_frequency,
+    ROUND(AVG(monetary), 2)                            AS avg_monetary,
+    ROUND(SUM(monetary), 2)                            AS total_revenue
+FROM rfm_segmented
+GROUP BY rfm_segment
+ORDER BY total_revenue DESC;
 
-
-
+-- 3b. Customer-level RFM table: run the CTEs above with
+--     SELECT * FROM rfm_segmented ORDER BY rfm_total DESC;
 
 
 -- ------------------------------------------------------------
@@ -124,7 +139,6 @@ WITH customer_summary AS (
     SELECT
         c.customer_unique_id,
         COUNT(DISTINCT o.order_id)                                  AS total_orders,
-        -- Правка 3: полная сумма включая доставку
         ROUND(SUM(oi.price + oi.freight_value), 2)                  AS total_spent,
         MIN(DATE(o.order_purchase_timestamp))                        AS first_order,
         MAX(DATE(o.order_purchase_timestamp))                        AS last_order,
@@ -139,7 +153,6 @@ WITH customer_summary AS (
 SELECT
     ROUND(AVG(total_spent), 2)                     AS avg_clv,
     ROUND(AVG(total_orders), 2)                    AS avg_orders_per_customer,
-    -- Правка 1: настоящий AOV = total_spent / total_orders
     ROUND(AVG(total_spent / total_orders), 2)      AS avg_order_value,
     MAX(total_spent)                                AS max_clv,
     COUNT(CASE WHEN total_orders > 1 THEN 1 END)   AS repeat_customers,
@@ -150,12 +163,11 @@ FROM customer_summary;
 -- ------------------------------------------------------------
 -- 5. TOP 20 CUSTOMERS BY REVENUE WITH RANK()
 -- ------------------------------------------------------------
--- Правка 4: добавлен RANK() для ранжирования клиентов
 WITH customer_totals AS (
     SELECT
         c.customer_unique_id,
-        c.customer_city,
-        c.customer_state,
+        MAX(c.customer_city)                        AS customer_city,
+        MAX(c.customer_state)                       AS customer_state,
         COUNT(DISTINCT o.order_id)                  AS total_orders,
         ROUND(SUM(oi.price + oi.freight_value), 2)  AS total_spent
     FROM customers c
