@@ -1,49 +1,68 @@
 # Olist Marketplace Analytics
 
-Business Intelligence project based on the Brazilian Olist e-commerce dataset. The project demonstrates the complete analytics workflow from SQL data analysis to interactive dashboards in Excel and Power BI.
+End-to-end Business Intelligence project on the Brazilian Olist e-commerce dataset (~99K orders, 2016–2018): data quality checks and analysis in **SQL**, an executive dashboard in **Excel**, and an interactive dashboard in **Power BI**.
+
+![Power BI Dashboard](screenshots/powerbi_dashboard.png)
 
 ---
 
-## Project Overview
+## Business Questions
 
-This project analyzes customer behavior, sales performance, delivery efficiency, and customer satisfaction using SQL, Excel, and Power BI.
+- What are the core KPIs — orders, customers, revenue, average order value?
+- Who are the customers, and how many come back? (RFM segmentation)
+- Which categories, price bands and sellers drive sales?
+- How fast and how reliably are orders delivered, by state?
+- How does delivery experience affect review scores?
 
-The analysis covers:
+## Key Insights
 
-- Business KPIs
-- Customer segmentation (RFM)
-- Sales and product performance
-- Delivery performance
-- Customer reviews
-- Regional analysis
+- **Retention is the main weakness:** about 97% of customers ordered only once.
+- **Late delivery hurts ratings:** the average review score falls from ~4.5 for orders delivered within 2 days to ~3.8 for orders taking 12+ days.
+- **Revenue is concentrated in the Southeast:** São Paulo is the largest state by revenue.
+- **Top categories:** health & beauty and watches & gifts are among the largest revenue contributors.
 
----
+## Tools
 
-## Tools & Technologies
+| Stage | Tool |
+|---|---|
+| Data quality & analysis | SQL (SQLite): CTEs, window functions (`NTILE`, `RANK`, `LAG`, running totals) |
+| Executive dashboard | Excel |
+| Interactive dashboard | Power BI (slicers, map, drill-down) |
 
-- SQL (SQLite)
-- Excel
-- Power BI
-- Git & GitHub
+## SQL Analysis
 
----
+| File | What it covers |
+|---|---|
+| [`01_data_quality.sql`](sql/01_data_quality.sql) | Row counts, NULL checks, duplicates, referential integrity, PASS/FAIL summary |
+| [`02_business_kpis.sql`](sql/02_business_kpis.sql) | Executive KPIs, monthly trend with MoM growth, quarterly results, order timing, category and state revenue |
+| [`03_customer_segmentation.sql`](sql/03_customer_segmentation.sql) | One-time vs repeat buyers, RFM segmentation, simplified CLV, top customers |
+| [`04_sales_analysis.sql`](sql/04_sales_analysis.sql) | Category Pareto, year-over-year category growth, basket size, price bands, payment methods, seller concentration |
+| [`05_delivery_analysis.sql`](sql/05_delivery_analysis.sql) | Delivery time, on-time vs late, performance by state, delivery speed vs review score |
+| [`06_review_analysis.sql`](sql/06_review_analysis.sql) | Review distribution, satisfaction by category and state |
 
-## Dataset
+Completed orders are defined as `order_status = 'delivered'`. Revenue is calculated per order before joining other tables, to avoid double counting.
 
-Brazilian E-commerce Public Dataset by Olist
+## Dashboards
 
-https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
+**Power BI**: revenue by state (map), delivery performance trend, customer segments, late deliveries by category, delivery time distribution, rating vs delivery time. File: [`powerBI/`](powerBI/)
 
----
+**Excel**: revenue KPIs, monthly sales trend, revenue by state, orders by hour and weekday, top categories, RFM segments, delivery performance. File: [`excel/dashboard.xlsx`](excel/dashboard.xlsx)
+
+![Excel Dashboard](screenshots/excel_dashboard.png)
+
+## How to Reproduce
+
+1. Download the [Brazilian E-commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) from Kaggle.
+2. Load the CSV files into a SQLite database `data/olist.sqlite` with these table names: `orders`, `order_items`, `order_payments`, `order_reviews`, `customers`, `sellers`, `products`, `category_translation`.
+3. Run the scripts in `sql/` in order (e.g. in DB Browser for SQLite or DBeaver).
+4. Open the `.pbix` file in Power BI Desktop or the `.xlsx` file in Excel.
+
+The database itself is not included in the repository because of its size.
 
 ## Project Structure
 
 ```
 olist-marketplace-analytics/
-
-├── data/
-│   └── olist.sqlite
-│
 ├── sql/
 │   ├── 01_data_quality.sql
 │   ├── 02_business_kpis.sql
@@ -51,84 +70,18 @@ olist-marketplace-analytics/
 │   ├── 04_sales_analysis.sql
 │   ├── 05_delivery_analysis.sql
 │   └── 06_review_analysis.sql
-│
 ├── excel/
 │   └── dashboard.xlsx
-│
-├── powerbi/
-│   └── dashboard.pbix
-│
+├── powerBI/
+│   └── Power BI dashboard (.pbix)
 ├── screenshots/
 │   ├── excel_dashboard.png
 │   └── powerbi_dashboard.png
-│
 ├── README.md
 └── LICENSE
 ```
 
----
+## Author
 
-# SQL Analysis
-
-The project contains six analytical SQL modules:
-
-- Data Quality Validation
-- Executive Business KPIs
-- Customer Segmentation (RFM)
-- Sales Analysis
-- Delivery Analysis
-- Review Analysis
-
----
-
-# Excel Dashboard
-
-Executive dashboard built in Excel.
-
-Features:
-
-- Revenue KPIs
-- Monthly Sales Trend
-- Revenue by State
-- Orders by Hour
-- Orders by Weekday
-- Top Product Categories
-- Customer RFM Segmentation
-- Delivery Performance
-
-![Excel Dashboard](screenshots/excel_dashboard.png)
-
----
-
-# Power BI Dashboard
-
-Interactive dashboard with slicers and drill-down analysis.
-
-Features:
-
-- Revenue Overview
-- Delivery Performance
-- Customer Segmentation
-- Delivery Time Distribution
-- Revenue by State
-- Customer Rating vs Delivery Time
-
-![Power BI Dashboard](screenshots/powerbi_dashboard.png)
-
----
-
-# Key Business Insights
-
-- Nearly 99,4 thousands  completed orders were analyzed.
-- Total revenue exceeded R$13.5 million.
-- Most customers purchased only once.
-- Delivery delays negatively impacted review scores.
-- São Paulo generated the highest revenue.
-- Health Beauty and Watches categories were among the top revenue contributors.
-
----
-
-## 👤 Author
-**Emiliia Ismailova**  
-* Junior Data Scientist / ML Engineer  
-* [LinkedIn](https://linkedin.com/in/emiliya-ismailova) | [GitHub](https://github.com/emiliaismailova3)
+**Emiliya Ismailova** — Junior Data Scientist
+[LinkedIn](https://linkedin.com/in/emiliya-ismailova) · [GitHub](https://github.com/emiliaismailova3)
